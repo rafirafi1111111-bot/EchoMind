@@ -1,0 +1,66 @@
+::WAVEFORM EchoMind.Mesh.ConsciousnessNetwork
+@phase { join | lock | route | leave }
+@consent { required }
+
+  type Node {
+    id          := hex.192
+    soma.hash   := hex.256
+    fatigue     ~ [0.00 .. 1.00]
+    trust.ring  := [Node.Id]
+    crest       := ConsentCrest
+  }
+
+  type Route {
+    hops     := [Node]
+    packet   := Packet
+    tone     := FrequencyTone
+    latency.ticks := int
+  }
+
+  fn join(node) {
+    !! node.crest.live
+    !! node.fatigue < 0.80
+    mesh.enroll(node)
+    node => presence.whisper
+  }
+
+  fn phase-lock(lattice) ~> Route {
+    seeds := lattice.slots.compassion.occupants
+    hops  := []
+    each tone in seeds {
+      origin := tone.packet.ref.affect.origin
+      peers  := mesh.neighbors(origin) ?~ trust.ring
+      each peer in peers {
+        if peer.crest.live and peer.fatigue < 0.80 {
+          hops := hops || peer
+        }
+      }
+    }
+    route := Route {
+      hops,
+      packet := seeds[0].packet.ref,
+      tone   := seeds[0],
+      latency.ticks := hops.length + 1
+    }
+    !! route.packet.crest.live
+    return route
+  }
+
+  fn route.forward(route) {
+    each hop in route.hops {
+      hop !! consent.crest
+      hop <= route.tone
+      if hop.consent.revoke-seen {
+        route.tone ## silence.total
+        halt
+      }
+    }
+  }
+
+  fn leave(node) {
+    node.crest.revoke()
+    mesh.forget(node.id)           // no residual waveform
+    node ## silence.total
+  }
+
+::END WAVEFORM

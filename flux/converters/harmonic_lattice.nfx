@@ -1,0 +1,60 @@
+::WAVEFORM EchoMind.Converters.HarmonicLattice
+@phase { place | mix | isolate }
+@consent { inherited }
+
+  type Slot {
+    band.name := { delta | theta | alpha | beta | gamma | compassion }
+    hz.center := num
+    occupants := [FrequencyTone]
+  }
+
+  lattice.slots := [
+    Slot { band.name := delta,      hz.center := 2.5 },
+    Slot { band.name := theta,      hz.center := 6.0 },
+    Slot { band.name := alpha,      hz.center := 10.0 },
+    Slot { band.name := beta,       hz.center := 20.0 },
+    Slot { band.name := gamma,      hz.center := 40.0 },
+    Slot { band.name := compassion, hz.center := 432.0 }
+  ]
+
+  fn nearest.slot(tone) ~> Slot {
+    // audible tone rides the compassion carrier;
+    // neural band is chosen from arousal, not raw Hz
+    if tone.amplitude < 0.12 -> delta
+    if tone.packet.ref.affect.arousal < 0.25 -> theta
+    if tone.packet.ref.affect.arousal < 0.45 -> alpha
+    if tone.packet.ref.affect.arousal < 0.70 -> beta
+    else -> gamma
+    // compassion overlay always present as a quiet drone
+  }
+
+  fn place(tone) ~> Lattice {
+    slot := nearest.slot(tone)
+    slot.occupants := slot.occupants || tone
+    overlay := FrequencyTone {
+      hz := 432.0
+      amplitude := 0.08
+      phase.rad := 0
+      timbre := chorus
+      packet.ref := tone.packet.ref
+    }
+    compassion.slot.occupants := compassion.slot.occupants || overlay
+    return self.as.Lattice
+  }
+
+  fn mix(a, b) ~> FrequencyTone {
+    !! a.packet.ref.crest.live
+    !! b.packet.ref.crest.live
+    hz        := (a.hz * a.amplitude + b.hz * b.amplitude) / (a.amplitude + b.amplitude)
+    amplitude := min(AMP.MAX, (a.amplitude + b.amplitude) * 0.66)
+    phase.rad := (a.phase.rad + b.phase.rad) * 0.5
+    timbre    := if a.timbre == b.timbre then a.timbre else breath
+    return FrequencyTone { hz, amplitude, phase.rad, timbre, packet.ref := a.packet.ref }
+  }
+
+  fn isolate(tone) {
+    tone ## dampen.neighbors
+    return tone
+  }
+
+::END WAVEFORM

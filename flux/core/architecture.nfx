@@ -1,0 +1,46 @@
+::WAVEFORM EchoMind.Core.Architecture
+@phase { soma | flux | mesh | echo }
+@consent { required }
+
+  axiom fail.closed := true
+  axiom no.coerce := true
+  axiom tick.ms := 11
+
+  stratum Soma {
+    intake <= bio.sense { heartrate, skin.conductance, microexpression, breath.phase }
+    packet := AffectPacket.seal(intake)
+    packet !! consent.crest
+    emit packet => Flux
+  }
+
+  stratum Flux {
+    packet <= Soma
+    tone := SentimentToFrequency.transmute(packet)
+    lattice := HarmonicLattice.place(tone)
+    emit lattice => Mesh
+  }
+
+  stratum Mesh {
+    lattice <= Flux
+    route := ConsciousnessNetwork.phase-lock(lattice)
+    route !! consent.crest.each-hop
+    emit route => Echo
+  }
+
+  stratum Echo {
+    inbound <= Mesh
+    inbound ## dampen.if { amplitude > safety.ceiling }
+    soma.receive(inbound) when inbound.consent.live
+    on consent.revoke => inbound ## silence.total
+  }
+
+  safety.ceiling ~ [0.00 .. 0.92]
+  decay.half-life.ticks := 64
+
+  ethics.guard {
+    if packet.consent.absent -> halt.and.trace("crest missing")
+    if packet.purity < 0.15 -> halt.and.trace("signal too mixed to share")
+    if node.fatigue > 0.80 -> refuse.intake
+  }
+
+::END WAVEFORM

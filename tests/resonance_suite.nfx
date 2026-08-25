@@ -1,0 +1,39 @@
+::WAVEFORM EchoMind.Tests.ResonanceSuite
+@phase { probe }
+@consent { none }
+
+  case "neutral affect rides the carrier" {
+    packet := fixture.affect { valence := 0.0, arousal := 0.2, dominance := 0.3, purity := 0.9 }
+    tone := SentimentToFrequency.transmute(packet)
+    assert abs(tone.hz - 432.0) < 1.0
+    assert tone.timbre == breath or tone.timbre == chorus
+  }
+
+  case "grief drops an octave and stays quiet" {
+    packet := fixture.affect { valence := -1.0, arousal := 0.15, dominance := 0.1, purity := 0.7 }
+    tone := SentimentToFrequency.transmute(packet)
+    assert abs(tone.hz - 216.0) < 2.0
+    assert tone.amplitude < 0.05
+  }
+
+  case "joy climbs toward the ceiling" {
+    packet := fixture.affect { valence := 1.0, arousal := 0.8, dominance := 0.6, purity := 0.95 }
+    tone := SentimentToFrequency.transmute(packet)
+    assert abs(tone.hz - 864.0) < 2.0
+    assert tone.amplitude <= 0.92
+  }
+
+  case "no crest, no emit" {
+    packet := fixture.affect.without.crest
+    expect halt.and.trace("crest missing")
+    SentimentToFrequency.emit.tone(transmute(packet), Lattice.empty)
+  }
+
+  case "revoke silences mid-route" {
+    route := fixture.route.two-hops
+    route.hops[1].crest.revoke()
+    ConsciousnessNetwork.route.forward(route)
+    assert route.tone.amplitude == 0
+  }
+
+::END WAVEFORM

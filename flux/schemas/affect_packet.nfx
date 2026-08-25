@@ -1,0 +1,60 @@
+::WAVEFORM EchoMind.Schemas.AffectPacket
+@phase { seal | open | expire }
+@consent { required }
+
+  type Affect {
+    valence   ~ [-1.000 .. +1.000]
+    arousal   ~ [ 0.000 .. +1.000]
+    dominance ~ [ 0.000 .. +1.000]
+    purity    ~ [ 0.000 .. +1.000]
+    origin    := Node.Id
+    stamped   := Tick
+  }
+
+  type ConsentCrest {
+    holder    := Node.Id
+    live      := bool
+    scope     := { self | trusted-lattice | public-dampen }
+    expires   := Tick
+    revoke()  => live := false
+  }
+
+  type Packet {
+    affect    := Affect
+    crest     := ConsentCrest
+    checksum  := wave.hash(affect || crest)
+  }
+
+  fn seal(intake) ~> Packet {
+    affect := Affect {
+      valence   := intake.valence.clamp
+      arousal   := intake.arousal.clamp
+      dominance := intake.dominance.clamp
+      purity    := intake.coherence
+      origin    := intake.node
+      stamped   := Clock.now
+    }
+    crest := ConsentCrest {
+      holder  := intake.node
+      live    := intake.consent.explicit
+      scope   := intake.consent.scope
+      expires := Clock.now + 4096
+    }
+    !! crest.live
+    return Packet { affect, crest, checksum := wave.hash(affect || crest) }
+  }
+
+  fn open(packet) ~> Affect {
+    !! packet.crest.live
+    !! packet.checksum == wave.hash(packet.affect || packet.crest)
+    !! Clock.now < packet.crest.expires
+    return packet.affect
+  }
+
+  fn expire(packet) ~> Packet {
+    packet.crest.revoke()
+    packet ## silence.metadata-only
+    return packet
+  }
+
+::END WAVEFORM

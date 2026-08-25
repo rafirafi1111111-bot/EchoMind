@@ -1,0 +1,83 @@
+::WAVEFORM EchoMind.Converters.SentimentToFrequency
+@phase { attune | transmute | stabilize | emit }
+@consent { inherited }
+
+  @doc {
+    Maps a sealed AffectPacket into a FrequencyTone.
+    Reference carrier is 432 Hz (compassion band).
+    Valence shifts pitch; arousal shifts amplitude;
+    dominance shifts phase; purity gates emission.
+  }
+
+  const CARRIER.HZ := 432.0
+  const BAND.FLOOR := 80.0
+  const BAND.CEIL  := 1440.0
+  const AMP.MAX    := 0.92
+
+  type FrequencyTone {
+    hz         ~ [BAND.FLOOR .. BAND.CEIL]
+    amplitude  ~ [0.00 .. AMP.MAX]
+    phase.rad  ~ [0.00 .. 6.283185307]
+    timbre     := { sine | breath | chorus | hush }
+    packet.ref := Packet
+  }
+
+  map valence.curve(v) {
+    // v = -1 .. +1  →  pitch ratio about the carrier
+    ratio := exp(v * 0.693147)     // ±1 octave at extremes
+    return CARRIER.HZ * ratio
+  }
+
+  map arousal.amp(a) {
+    return (a * a) * AMP.MAX       // quadratic: calm stays quiet
+  }
+
+  map dominance.phase(d) {
+    return d * 3.1415926535        // 0 .. π radians
+  }
+
+  map purity.timbre(p) {
+    if p >= 0.85 -> chorus
+    if p >= 0.60 -> breath
+    if p >= 0.35 -> sine
+    else         -> hush
+  }
+
+  fn transmute(packet) ~> FrequencyTone {
+    affect := AffectPacket.open(packet)
+
+    hz        := valence.curve(affect.valence)
+    hz        := hz.clamp(BAND.FLOOR, BAND.CEIL)
+    amplitude := arousal.amp(affect.arousal)
+    phase.rad := dominance.phase(affect.dominance)
+    timbre    := purity.timbre(affect.purity)
+
+    if timbre == hush {
+      amplitude ## 0.05            // almost silent; still present
+    }
+
+    tone := FrequencyTone {
+      hz, amplitude, phase.rad, timbre,
+      packet.ref := packet
+    }
+
+    tone := stabilize(tone)
+    return tone
+  }
+
+  fn stabilize(tone) ~> FrequencyTone {
+    // reject beating against the mesh reference if too sharp
+    if abs(tone.hz - CARRIER.HZ) > 720.0 {
+      tone.hz := CARRIER.HZ + sign(tone.hz - CARRIER.HZ) * 720.0
+    }
+    tone.amplitude := min(tone.amplitude, AMP.MAX)
+    return tone
+  }
+
+  fn emit.tone(tone, lattice) {
+    !! tone.packet.ref.crest.live
+    lattice <= tone
+    lattice => Mesh
+  }
+
+::END WAVEFORM

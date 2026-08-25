@@ -1,0 +1,52 @@
+name: Neuro-Flux Compile and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  attune:
+    name: Compile NF-X waveforms
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout soma
+        uses: actions/checkout@v4
+
+      - name: Make compiler executable
+        run: chmod +x tools/nfx-compile.sh
+
+      - name: Compile Neuro-Flux bundle
+        run: ./tools/nfx-compile.sh compile
+
+      - name: Run resonance suite
+        run: ./tools/nfx-compile.sh test
+
+      - name: Prove no banned host languages in product core
+        run: |
+          if find flux tests -type f \( -name '*.py' -o -name '*.js' -o -name '*.c' -o -name '*.cpp' -o -name '*.cc' \) | grep -q .
+          then
+            echo "Banned traditional sources found under flux/ or tests/"
+            exit 1
+          fi
+          echo "Core remains Neuro-Flux only."
+
+      - name: Upload flux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: echomind-flux-bundle
+          path: dist/
+
+      - name: Deploy flux bundle to gh-pages (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: flux-deploy
+          force_orphan: true
+          commit_message: "deploy EchoMind flux bundle"

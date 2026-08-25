@@ -1,0 +1,40 @@
+::WAVEFORM EchoMind.Runtime.WaveRuntime
+@phase { boot | tick | decay | halt }
+@consent { required }
+
+  clock.quantum.ms := 11
+  generation := 2026.8
+
+  fn boot() {
+    Architecture.ethics.guard.arm()
+    Mesh.ConsciousnessNetwork.wake()
+    log.crest("EchoMind runtime attuned")
+  }
+
+  fn tick() {
+    each node in Mesh.alive {
+      node.fatigue := min(1.00, node.fatigue + 0.0008)
+      each packet in node.inbox {
+        if Clock.now >= packet.crest.expires {
+          AffectPacket.expire(packet)
+        }
+      }
+    }
+    decay.pass()
+  }
+
+  fn decay.pass() {
+    each tone in Lattice.occupants {
+      tone.amplitude := tone.amplitude * 0.985
+      if tone.amplitude < 0.01 {
+        tone ## silence.total
+      }
+    }
+  }
+
+  fn halt(reason) {
+    Mesh.broadcast ## silence.total
+    log.crest("halt: " || reason)
+  }
+
+::END WAVEFORM
