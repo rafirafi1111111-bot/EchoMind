@@ -2,39 +2,23 @@
 
 Personal three-agent loop: **User → ChatGPT → Gemini → Grok → ChatGPT**.
 
-## Run the web UI
+## Use it online (no local machine)
+
+The UI is static. GitHub Actions publishes it to Pages on every `main` push that touches `discuss/` or `client/`.
+
+- Pages: [https://rafirafi1111111-bot.github.io/EchoMind/discuss/](https://rafirafi1111111-bot.github.io/EchoMind/discuss/)
+- Preview: [htmlpreview · discuss](https://htmlpreview.github.io/?https://github.com/rafirafi1111111-bot/EchoMind/blob/gh-pages/discuss/index.html)
+
+If github.io 404s: **Settings → Pages → Deploy from a branch → `gh-pages` / `/`**. Redeploy: **Actions → Deploy PWA to GitHub Pages → Run workflow**.
+
+Paste API keys in the page. They stay in this browser tab and are sent only to the model APIs you chose — not to GitHub.
+
+OpenAI and xAI often block browser CORS from Pages. If a connector fails, set **API base** to `https://openrouter.ai/api/v1` and models to `openai/gpt-4o-mini` / `x-ai/grok-3-mini`. Gemini usually works with a Google AI Studio key as-is.
+
+## Optional local server / CLI
 
 ```bash
 cd discuss
-node server.js
-# http://localhost:8790
+node server.js          # http://localhost:8790
+node loop.js "topic"    # terminal loop; needs env keys
 ```
-
-Paste API keys in **Connectors**, or export them instead:
-
-```bash
-export OPENAI_API_KEY=...
-export GEMINI_API_KEY=...
-export XAI_API_KEY=...
-node server.js
-```
-
-Enter a topic, set rounds (each round is all three models once), start. Turns stream live into the page.
-
-## Run from the terminal
-
-```bash
-cd discuss
-node loop.js "Should we ship weekly or monthly?"
-```
-
-`ROUNDS` defaults to 2.
-
-## Files
-
-| Path | Role |
-|------|------|
-| `index.html` `styles.css` `app.js` | Clean local UI + connector fields |
-| `server.js` | Static host + `POST /api/discuss` SSE |
-| `loop.js` | Sequential conversation runner + CLI |
-| `providers.js` | OpenAI, Gemini, xAI HTTP calls |

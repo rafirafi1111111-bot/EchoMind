@@ -27,19 +27,24 @@ node live/server.js
 # http://localhost:8788   ws://localhost:8788/mesh
 ```
 
-`client/` is republished to `gh-pages` by `.github/workflows/deploy-pages.yml`. If github.io 404s: **Settings → Pages → Deploy from a branch → `gh-pages` / `/`**.
+`client/` plus `discuss/` are republished to `gh-pages` by `.github/workflows/deploy-pages.yml`. If github.io 404s: **Settings → Pages → Deploy from a branch → `gh-pages` / `/`**.
 
-## Personal multi-agent discuss
+## Personal multi-agent discuss (online)
 
-ChatGPT, Gemini, and Grok talk a topic in a fixed loop: User → ChatGPT → Gemini → Grok → ChatGPT.
+ChatGPT, Gemini, and Grok talk a topic in a fixed loop. The hosted app is static — no `node server.js` required.
 
-```bash
-cd discuss
-node server.js
-# http://localhost:8790
-```
+- **Pages:** [https://rafirafi1111111-bot.github.io/EchoMind/discuss/](https://rafirafi1111111-bot.github.io/EchoMind/discuss/)
+- **Preview:** [htmlpreview · discuss](https://htmlpreview.github.io/?https://github.com/rafirafi1111111-bot/EchoMind/blob/gh-pages/discuss/index.html)
 
-Paste keys in the Connectors panel, or export `OPENAI_API_KEY`, `GEMINI_API_KEY`, and `XAI_API_KEY`. CLI:
+1. Open the link.
+2. Paste keys in Connectors (they stay in your browser).
+3. Enter a topic and start. Turns appear live on the page.
+
+If ChatGPT or Grok is blocked by CORS, set API base to `https://openrouter.ai/api/v1` and models to `openai/gpt-4o-mini` / `x-ai/grok-3-mini`. Gemini usually works directly.
+
+Redeploy: push to `main` or **Actions → Deploy PWA to GitHub Pages → Run workflow**.
+
+Optional CLI (needs a machine + env keys):
 
 ```bash
 cd discuss
@@ -75,18 +80,18 @@ node test/verify.js
 [ Flux Layer ]      sentiment ⇄ frequency
 [ Mesh Layer ]      P2P phase-lock
 [ Live runtime ]    WebSocket / MQTT join + thought + roster
-[ Discuss ]         ChatGPT ↔ Gemini ↔ Grok sequential loop
+[ Discuss ]         static Pages app — ChatGPT ↔ Gemini ↔ Grok loop
 ```
 
 | Path | Role |
 |------|------|
 | `client/` | Live PWA: join, send, peer lattice |
 | `live/server.js` | Static host + WebSocket mesh |
-| `discuss/` | Personal 3-agent discussion UI + backend |
+| `discuss/` | Hosted 3-agent discussion UI |
 | `phase1/` | In-process node mesh |
 | `phase2/` | Tick / strength / sync mock |
 | `flux/` | Neuro-Flux spec |
-| `.github/workflows/deploy-pages.yml` | Publish `client/` → `gh-pages` |
+| `.github/workflows/deploy-pages.yml` | Publish `client/` + `discuss/` → `gh-pages` |
 
 ## Consent axiom
 

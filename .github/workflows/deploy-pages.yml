@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "client/**"
+      - "discuss/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -23,14 +24,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Mark as non-Jekyll
-        run: touch client/.nojekyll
+      - name: Assemble Pages site
+        run: |
+          mkdir -p site/discuss
+          cp -a client/. site/
+          cp -a discuss/index.html discuss/styles.css discuss/app.js site/discuss/
+          touch site/.nojekyll
 
-      - name: Publish client/ to gh-pages
+      - name: Publish site to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./client
+          publish_dir: ./site
           publish_branch: gh-pages
           force_orphan: true
-          commit_message: "deploy EchoMind PWA preview"
+          commit_message: "deploy EchoMind Pages preview (PWA + discuss)"
