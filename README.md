@@ -4,7 +4,7 @@ Human Consciousness Network — 2026
 EchoMind transmits **raw emotional resonance and cognitive state** without words. Affect is captured as a bio-semantic waveform, converted into a harmonic frequency packet, and phase-locked across a mesh of consenting minds.
 
 The product core is specified in **Neuro-Flux (NF-X)** — a wave-based, bio-semantic language — under `flux/`.
-**Phase 1** adds a small runnable Node.js simulator in `phase1/` so nodes can connect, send a thought state, and log acknowledgements before the NF-X runtime exists.
+**Phase 1** is a runnable Node.js mesh. **Phase 2** adds a realtime event-driven mock so nodes keep exchanging thought packets and report sync / connection strength.
 
 ## Phase 1 (runnable)
 
@@ -18,6 +18,19 @@ node src/server.js         # optional HTTP API on :8787
 
 Full notes: [`phase1/README.md`](phase1/README.md)
 
+## Phase 2 (realtime mock)
+
+Four nodes tick on a clock, exchange packets over an in-process event bus, and update pairwise **connection strength** plus a lattice **sync level**.
+
+```bash
+cd phase2
+node src/index.js          # live tick log + final snapshot
+node test/verify.js        # assert nodes stay enrolled and syncing
+TICKS=24 TICK_MS=100 node src/index.js
+```
+
+Full notes: [`phase2/README.md`](phase2/README.md)
+
 ## Architecture
 
 ```
@@ -27,6 +40,7 @@ Full notes: [`phase1/README.md`](phase1/README.md)
 [ Mesh Layer ]      P2P phase-lock → sealed envelopes (no servers)
 [ Echo Layer ]      receive / dampen / consent revoke
 [ Phase 1 runtime ] in-process Node mesh (connect / signal / ack)
+[ Phase 2 runtime ] event bus + tick loop + strength / sync metrics
 ```
 
 | File | Role |
@@ -47,6 +61,7 @@ Full notes: [`phase1/README.md`](phase1/README.md)
 | `tests/*.nfx` | Resonance, gateway, mesh suites |
 | `tools/nfx-compile.sh` | compile / test / gateway / mesh |
 | `phase1/` | Runnable Node.js node-mesh simulator |
+| `phase2/` | Realtime tick loop, event bus, sync metrics |
 | `.github/workflows/neuro-flux-deploy.yml` | Core compile + deploy |
 | `.github/workflows/neuro-flux-gateway.yml` | Gateway test + raster |
 | `.github/workflows/neuro-flux-mesh.yml` | Mesh test + deploy |
@@ -56,6 +71,7 @@ Full notes: [`phase1/README.md`](phase1/README.md)
 Peers advertise a trust ring, handshake by interfering live crests, and route **sealed 32-knot envelopes** only. One-tick store at most. Mid-hop revoke burns the path. No relay host, no text, no voice PCM.
 
 Phase 1 approximates that path in-process: enroll → handshake → `ThoughtState` → `ThoughtAck` → structured log.
+Phase 2 keeps the path running: tick → packet → strength update → mean sync.
 
 ## Consent axiom
 
