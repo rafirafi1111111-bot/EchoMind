@@ -1,0 +1,18 @@
+{
+  "name": "EchoMind Lattice",
+  "short_name": "EchoMind",
+  "description": "Human Consciousness Network — Phase 3 web preview",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07070c",
+  "theme_color": "#07070c",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07070c" />
+  <title>EchoMind — Multi-agent discuss</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="top">
+    <p class="eyebrow">EchoMind · personal loop · hosted</p>
+    <h1>Three minds, one topic</h1>
+    <p class="lede">User → ChatGPT → Gemini → Grok → ChatGPT. Runs entirely in this browser. Keys never go to GitHub.</p>
+  </header>
+
+  <section class="connectors" aria-label="AI connectors">
+    <h2>Connectors</h2>
+    <div class="grid">
+      <fieldset data-agent="chatgpt">
+        <legend>ChatGPT</legend>
+        <label>API key
+          <input type="password" id="key-chatgpt" autocomplete="off" placeholder="sk-… or OpenRouter key" />
+        </label>
+        <label>Model
+          <input id="model-chatgpt" value="gpt-4o-mini" />
+        </label>
+        <label>API base
+          <input id="base-chatgpt" value="https://api.openai.com/v1" />
+        </label>
+      </fieldset>
+      <fieldset data-agent="gemini">
+        <legend>Gemini</legend>
+        <label>API key
+          <input type="password" id="key-gemini" autocomplete="off" placeholder="AIza…" />
+        </label>
+        <label>Model
+          <input id="model-gemini" value="gemini-2.0-flash" />
+        </label>
+        <label>API base
+          <input id="base-gemini" value="" placeholder="unused — Google URL is fixed" />
+        </label>
+      </fieldset>
+      <fieldset data-agent="grok">
+        <legend>Grok</legend>
+        <label>API key
+          <input type="password" id="key-grok" autocomplete="off" placeholder="xai-… or OpenRouter key" />
+        </label>
+        <label>Model
+          <input id="model-grok" value="grok-3-mini" />
+        </label>
+        <label>API base
+          <input id="base-grok" value="https://api.x.ai/v1" />
+        </label>
+      </fieldset>
+    </div>
+    <p class="hint">GitHub Pages cannot proxy APIs. If ChatGPT or Grok is blocked by CORS, set base to <code>https://openrouter.ai/api/v1</code> and models to <code>openai/gpt-4o-mini</code> / <code>x-ai/grok-3-mini</code>. Gemini usually works as-is.</p>
+  </section>
+
+  <form id="start" class="start">
+    <label>Problem or topic
+      <textarea id="topic" rows="4" required placeholder="What should the three models debate?"></textarea>
+    </label>
+    <div class="row">
+      <label>Rounds
+        <input id="rounds" type="number" min="1" max="8" value="2" />
+      </label>
+      <p class="hint">One round = ChatGPT, then Gemini, then Grok.</p>
+    </div>
+    <div class="actions">
+      <button type="submit" id="go">Start discussion</button>
+      <button type="button" id="stop" hidden>Stop</button>
+    </div>
+  </form>
+
+  <p id="status" class="status">Idle.</p>
+  <ol id="feed" class="feed" aria-live="polite"></ol>
+
+  <p class="hint"><a href="../">← Live lattice</a></p>
+
+  <script src="./app.js"></script>
+</body>
+</html>
