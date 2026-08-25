@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07070c" />
+  <title>EchoMind — Multi-agent discuss</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="top">
+    <p class="eyebrow">EchoMind · personal loop</p>
+    <h1>Three minds, one topic</h1>
+    <p class="lede">User → ChatGPT → Gemini → Grok → ChatGPT. Keys stay in this browser session or in local env vars.</p>
+  </header>
+
+  <section class="connectors" aria-label="AI connectors">
+    <h2>Connectors</h2>
+    <div class="grid">
+      <fieldset data-agent="chatgpt">
+        <legend>ChatGPT</legend>
+        <label>API key
+          <input type="password" id="key-chatgpt" autocomplete="off" placeholder="sk-… or leave blank for OPENAI_API_KEY" />
+        </label>
+        <label>Model
+          <input id="model-chatgpt" value="gpt-4o-mini" />
+        </label>
+        <p class="env" id="env-chatgpt"></p>
+      </fieldset>
+      <fieldset data-agent="gemini">
+        <legend>Gemini</legend>
+        <label>API key
+          <input type="password" id="key-gemini" autocomplete="off" placeholder="AIza… or leave blank for GEMINI_API_KEY" />
+        </label>
+        <label>Model
+          <input id="model-gemini" value="gemini-2.0-flash" />
+        </label>
+        <p class="env" id="env-gemini"></p>
+      </fieldset>
+      <fieldset data-agent="grok">
+        <legend>Grok</legend>
+        <label>API key
+          <input type="password" id="key-grok" autocomplete="off" placeholder="xai-… or leave blank for XAI_API_KEY" />
+        </label>
+        <label>Model
+          <input id="model-grok" value="grok-3-mini" />
+        </label>
+        <p class="env" id="env-grok"></p>
+      </fieldset>
+    </div>
+  </section>
+
+  <form id="start" class="start">
+    <label>Problem or topic
+      <textarea id="topic" rows="4" required placeholder="What should the three models debate?"></textarea>
+    </label>
+    <div class="row">
+      <label>Rounds
+        <input id="rounds" type="number" min="1" max="8" value="2" />
+      </label>
+      <p class="hint">One round = ChatGPT, then Gemini, then Grok.</p>
+    </div>
+    <div class="actions">
+      <button type="submit" id="go">Start discussion</button>
+      <button type="button" id="stop" hidden>Stop</button>
+    </div>
+  </form>
+
+  <p id="status" class="status">Idle.</p>
+  <ol id="feed" class="feed" aria-live="polite"></ol>
+
+  <script src="./app.js"></script>
+</body>
+</html>
