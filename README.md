@@ -3,8 +3,8 @@ Human Consciousness Network — 2026
 
 EchoMind transmits **raw emotional resonance and cognitive state** without words. Affect is captured as a bio-semantic waveform, converted into a harmonic frequency packet, and phase-locked across a mesh of consenting minds.
 
-The product core is specified in **Neuro-Flux (NF-X)** — a wave-based, bio-semantic language — under `flux/`.
-**Phase 1** is a runnable Node.js mesh. **Phase 2** adds a realtime event-driven mock so nodes keep exchanging thought packets and report sync / connection strength.
+The product core is specified in **Neuro-Flux (NF-X)** under `flux/`.
+Runnable layers: **Phase 1** mesh, **Phase 2** realtime mock, **Phase 3** GitHub Actions + PWA preview.
 
 ## Phase 1 (runnable)
 
@@ -13,6 +13,7 @@ Virtual consciousness nodes join an in-process mesh, handshake with a consent cr
 ```bash
 cd phase1
 node src/index.js          # three-node demo
+node test/verify.js        # connect / signal / ack checks
 node src/server.js         # optional HTTP API on :8787
 ```
 
@@ -31,6 +32,28 @@ TICKS=24 TICK_MS=100 node src/index.js
 
 Full notes: [`phase2/README.md`](phase2/README.md)
 
+## Phase 3 (CI + web preview)
+
+[`.github/workflows/build-test.yml`](.github/workflows/build-test.yml) runs on every push and pull request to `main`:
+
+1. **Phase 1 mesh** — `node phase1/test/verify.js`, then a demo smoke run.
+2. **Phase 2 realtime mock** — `node phase2/test/verify.js` (after Phase 1 passes).
+3. **Web preview assets** — confirms the PWA files under `client/` exist.
+
+You can also trigger it manually: **Actions → Build and Test → Run workflow**.
+
+A failing job means a node failed to join, an ack was dropped, the Phase 2 loop crashed, or the preview shell is missing. Existing Neuro-Flux workflows (`.github/workflows/neuro-flux-*.yml`) still compile the NF-X spec separately.
+
+### PWA / mobile-friendly preview
+
+Static client in [`client/`](client/) — no build step.
+
+```bash
+python3 -m http.server 8080 --directory client
+```
+
+Open the URL on a phone and use *Add to Home Screen* for a standalone shell. Details: [`client/README.md`](client/README.md).
+
 ## Architecture
 
 ```
@@ -41,6 +64,7 @@ Full notes: [`phase2/README.md`](phase2/README.md)
 [ Echo Layer ]      receive / dampen / consent revoke
 [ Phase 1 runtime ] in-process Node mesh (connect / signal / ack)
 [ Phase 2 runtime ] event bus + tick loop + strength / sync metrics
+[ Phase 3 preview ] static PWA client + GitHub Actions verify
 ```
 
 | File | Role |
@@ -62,6 +86,8 @@ Full notes: [`phase2/README.md`](phase2/README.md)
 | `tools/nfx-compile.sh` | compile / test / gateway / mesh |
 | `phase1/` | Runnable Node.js node-mesh simulator |
 | `phase2/` | Realtime tick loop, event bus, sync metrics |
+| `client/` | PWA / mobile web preview |
+| `.github/workflows/build-test.yml` | Phase 1 + 2 verify + preview check |
 | `.github/workflows/neuro-flux-deploy.yml` | Core compile + deploy |
 | `.github/workflows/neuro-flux-gateway.yml` | Gateway test + raster |
 | `.github/workflows/neuro-flux-mesh.yml` | Mesh test + deploy |
