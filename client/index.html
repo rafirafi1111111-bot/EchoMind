@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07070c" />
+  <meta name="description" content="EchoMind Phase 3 preview — consciousness node lattice" />
+  <title>EchoMind — Lattice Preview</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icons/icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="top">
+    <p class="eyebrow">EchoMind · Phase 3 preview</p>
+    <h1>Consciousness lattice</h1>
+    <p class="lede">Four virtual nodes exchanging thought states. Install as a PWA or open this folder in a browser.</p>
+  </header>
+
+  <section class="stats" aria-live="polite">
+    <div><span id="tick">0</span><label>tick</label></div>
+    <div><span id="sync">0.00</span><label>mean sync</label></div>
+    <div><span id="links">0</span><label>live hops</label></div>
+  </section>
+
+  <canvas id="lattice" width="720" height="420" aria-label="Node lattice"></canvas>
+
+  <ul id="feed" class="feed" aria-label="Recent packets"></ul>
+
+  <footer>
+    <button id="toggle" type="button">Pause</button>
+    <span class="hint">Static client — no server. Ready for GitHub Pages or a phone home screen.</span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
