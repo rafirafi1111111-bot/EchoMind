@@ -29,6 +29,23 @@ node live/server.js
 
 `client/` is republished to `gh-pages` by `.github/workflows/deploy-pages.yml`. If github.io 404s: **Settings → Pages → Deploy from a branch → `gh-pages` / `/`**.
 
+## Personal multi-agent discuss
+
+ChatGPT, Gemini, and Grok talk a topic in a fixed loop: User → ChatGPT → Gemini → Grok → ChatGPT.
+
+```bash
+cd discuss
+node server.js
+# http://localhost:8790
+```
+
+Paste keys in the Connectors panel, or export `OPENAI_API_KEY`, `GEMINI_API_KEY`, and `XAI_API_KEY`. CLI:
+
+```bash
+cd discuss
+node loop.js "your problem or topic"
+```
+
 ## Phase 1 (runnable)
 
 ```bash
@@ -58,12 +75,14 @@ node test/verify.js
 [ Flux Layer ]      sentiment ⇄ frequency
 [ Mesh Layer ]      P2P phase-lock
 [ Live runtime ]    WebSocket / MQTT join + thought + roster
+[ Discuss ]         ChatGPT ↔ Gemini ↔ Grok sequential loop
 ```
 
 | Path | Role |
 |------|------|
 | `client/` | Live PWA: join, send, peer lattice |
 | `live/server.js` | Static host + WebSocket mesh |
+| `discuss/` | Personal 3-agent discussion UI + backend |
 | `phase1/` | In-process node mesh |
 | `phase2/` | Tick / strength / sync mock |
 | `flux/` | Neuro-Flux spec |
