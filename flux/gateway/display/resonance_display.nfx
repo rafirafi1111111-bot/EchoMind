@@ -1,0 +1,64 @@
+::WAVEFORM EchoMind.Gateway.Display.ResonanceDisplay
+@phase { attune | paint | fade }
+@consent { inherited }
+
+  @doc {
+    The only human surface. No glyphs, no captions, no controls.
+    Consent lives on the soma crest, not on a button.
+    Operators rendered:
+      ~>   sentiment transmuted into a colored carrier stroke
+      ::   phase-lock drawn as two envelopes sharing a node
+  }
+
+  type Field {
+    width.px  := 1440
+    height.px := 900
+    persist.ticks := 6
+  }
+
+  field := Field {}
+
+  fn attune(node) {
+    field.clear.to { luminance := 0.03 }     // near-black rest
+    self.node := node
+  }
+
+  fn paint(tone, face.env, voice.env) {
+    hue := valence.hue(tone.packet.ref.affect.valence)
+    lum := 0.08 + tone.amplitude * 0.55
+    thick := 2 + floor(tone.amplitude * 10)
+
+    // ~>  carrier stroke: affect becomes frequency path
+    stroke.carrier := EnvelopeRaster.path(
+      knots := mix(face.env, voice.env),
+      hz    := tone.hz,
+      hue   := hue,
+      lum   := lum,
+      thick := thick
+    )
+
+    // ::  phase-lock: face and voice envelopes meet at mid-field
+    stroke.lock := EnvelopeRaster.lock(
+      a := face.env,
+      b := voice.env,
+      phase := tone.phase.rad,
+      hue := hue
+    )
+
+    field.layers := [ stroke.carrier, stroke.lock ]
+    field.chrome := none                   // axiom: no UI
+    field.text   := none
+    field.hit-targets := none
+  }
+
+  fn valence.hue(v) {
+    // -1 grief → 260° indigo ; 0 rest → 190° teal ; +1 joy → 48° gold
+    return 190 - (v * 142)
+  }
+
+  fn fade() {
+    field.layers ## dampen.each
+    field.clear.to { luminance := 0.03 }
+  }
+
+::END WAVEFORM

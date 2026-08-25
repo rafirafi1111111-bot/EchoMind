@@ -1,0 +1,46 @@
+::WAVEFORM EchoMind.Tests.GatewaySuite
+@phase { probe }
+@consent { none }
+
+  case "armed soma is required before sense" {
+    MobileSoma.bus.armed := false
+    expect halt
+    MicroExpression.sense()
+  }
+
+  case "micro-expression envelope is 32 knots" {
+    MobileSoma.arm(fixture.bus)
+    face := MicroExpression.sense()
+    assert face.envelope.length == 32
+    assert face.valence >= -1.00 and face.valence <= 1.00
+  }
+
+  case "voice tone never yields lexicon" {
+    voice := VoiceTone.sense()
+    assert voice.has.tokens == false
+    assert voice.envelope.length == 32
+    assert voice.f0.hz >= 80.0 and voice.f0.hz <= 400.0
+  }
+
+  case "display carries no chrome" {
+    ResonanceDisplay.paint(fixture.tone, fixture.face.env, fixture.voice.env)
+    assert ResonanceDisplay.field.chrome == none
+    assert ResonanceDisplay.field.text == none
+    assert ResonanceDisplay.field.hit-targets == none
+    assert ResonanceDisplay.field.layers.length == 2
+  }
+
+  case "revoke stops the ingest pulse" {
+    RealtimeIngest.open(fixture.node)
+    fixture.node.crest.revoke()
+    RealtimeIngest.pulse()
+    assert RealtimeIngest.live == false
+  }
+
+  case "raster specimen is 32 + 32 knots" {
+    assert EnvelopeRaster.specimen.face.length == 32
+    assert EnvelopeRaster.specimen.voice.length == 32
+    assert abs(EnvelopeRaster.specimen.tone.hz - 432.0) < 0.01
+  }
+
+::END WAVEFORM

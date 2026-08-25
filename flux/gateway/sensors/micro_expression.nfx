@@ -1,0 +1,63 @@
+::WAVEFORM EchoMind.Gateway.Sensors.MicroExpression
+@phase { sense | envelope | drop }
+@consent { required }
+
+  @doc {
+    Front-camera simulation. Action-unit deltas become valence /
+    arousal / dominance. No faces stored. Only a 32-knot envelope.
+  }
+
+  type ActionDelta {
+    au01 ~ [0 .. 1]    // inner brow
+    au04 ~ [0 .. 1]    // brow lower
+    au06 ~ [0 .. 1]    // cheek raise
+    au12 ~ [0 .. 1]    // lip corner pull
+    au15 ~ [0 .. 1]    // lip corner depress
+    au20 ~ [0 .. 1]    // lip stretch
+    au26 ~ [0 .. 1]    // jaw drop
+  }
+
+  type FaceWave {
+    valence   ~ [-1.000 .. +1.000]
+    arousal   ~ [ 0.000 .. +1.000]
+    dominance ~ [ 0.000 .. +1.000]
+    purity    ~ [ 0.000 .. +1.000]
+    envelope  := [32]num
+  }
+
+  fn sense() ~> FaceWave {
+    !! MobileSoma.bus.armed
+    !! self.node.crest.live
+
+    au := sim.action.units()          // hardware stand-in
+
+    valence := (au.au12 * 0.55 + au.au06 * 0.25)
+              - (au.au15 * 0.45 + au.au04 * 0.35)
+    arousal := (au.au01 * 0.20 + au.au26 * 0.35 + au.au20 * 0.25 + au.au04 * 0.20)
+    dominance := (0.50 - au.au01 * 0.25 + au.au26 * 0.20).clamp
+    purity := 1.00 - sim.occlusion.ratio()
+
+    env := envelope.from(au)
+    return FaceWave { valence, arousal, dominance, purity, envelope := env }
+  }
+
+  fn envelope.from(au) ~> [32]num {
+    knots := []
+    i := 0
+    while i < 32 {
+      t := i / 31
+      y := 0.22 * sin(t * 6.2832 + au.au12)
+          + 0.18 * sin(t * 12.566 + au.au04)
+          + 0.15 * (au.au06 - au.au15)
+          + 0.10 * au.au26 * sin(t * 3.1416)
+      knots := knots || y.clamp(-1.00, 1.00)
+      i := i + 1
+    }
+    return knots
+  }
+
+  fn drop() {
+    last.frame ## silence.total       // never persist pixels
+  }
+
+::END WAVEFORM

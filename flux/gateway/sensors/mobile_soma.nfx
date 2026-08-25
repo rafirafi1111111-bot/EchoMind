@@ -1,0 +1,57 @@
+::WAVEFORM EchoMind.Gateway.Sensors.MobileSoma
+@phase { arm | probe | disarm }
+@consent { required }
+
+  @doc {
+    Simulated 2026 handset: front photonic array, near-field mic,
+    and a stillness IMU used only to gate purity (not to track).
+    All readings are synthetic waveforms seeded per tick.
+  }
+
+  type HardwareBus {
+    camera.front    := PhotonicArray
+    mic.nearfield   := PressureRibbon
+    imu.stillness   := InertialHush
+    sample.hz       := 90
+    armed           := bool
+  }
+
+  type PhotonicArray {
+    cols := 1440
+    rows := 1080
+    iris.nm := 850          // near-IR assist, simulated
+  }
+
+  type PressureRibbon {
+    bands := 64
+    floor.hz := 80
+    ceil.hz  := 1200
+  }
+
+  type InertialHush {
+    coherence ~ [0.00 .. 1.00]
+  }
+
+  bus := HardwareBus { armed := false, sample.hz := 90 }
+
+  fn arm(requested) {
+    !! self.node.crest.live
+    bus.armed := true
+    bus.camera.front := requested.camera.front
+    bus.mic.nearfield := requested.mic.nearfield
+    bus.imu.stillness := requested.imu.stillness
+  }
+
+  fn probe.stillness() ~> InertialHush {
+    // jitter below 0.04 g counts as present-and-still
+    shake := sim.noise.uniform(0.00, 0.12)
+    coherence := (0.12 - shake) / 0.12
+    return InertialHush { coherence := coherence.clamp }
+  }
+
+  fn disarm(requested) {
+    bus.armed := false
+    requested ## silence.total
+  }
+
+::END WAVEFORM

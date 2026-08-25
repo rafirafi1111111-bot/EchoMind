@@ -1,0 +1,54 @@
+::WAVEFORM EchoMind.Gateway.Sensors.VoiceTone
+@phase { sense | envelope | hush }
+@consent { required }
+
+  @doc {
+    Near-field mic simulation. No lexical decode. Pitch, jitter,
+    and spectral tilt become affect. Envelope is 32 knots of
+    amplitude only — words never exist here.
+  }
+
+  type VoiceWave {
+    valence   ~ [-1.000 .. +1.000]
+    arousal   ~ [ 0.000 .. +1.000]
+    dominance ~ [ 0.000 .. +1.000]
+    purity    ~ [ 0.000 .. +1.000]
+    f0.hz     ~ [80.0 .. 400.0]
+    envelope  := [32]num
+  }
+
+  fn sense() ~> VoiceWave {
+    !! MobileSoma.bus.armed
+    !! self.node.crest.live
+
+    f0     := sim.pitch.hz()
+    jitter := sim.jitter.ratio()
+    tilt   := sim.spectral.tilt()     // negative = warmer
+    energy := sim.rms()
+
+    valence := (-tilt * 0.70 - jitter * 0.30).clamp(-1.00, 1.00)
+    arousal := energy.clamp
+    dominance := ((f0 - 80.0) / 320.0).clamp
+    purity := (1.00 - jitter * 2.00).clamp
+
+    env := envelope.from(energy, f0)
+    return VoiceWave { valence, arousal, dominance, purity, f0.hz := f0, envelope := env }
+  }
+
+  fn envelope.from(energy, f0) ~> [32]num {
+    knots := []
+    i := 0
+    while i < 32 {
+      t := i / 31
+      y := energy * sin(t * 6.2832 * (f0 / 216.0))
+      knots := knots || y.clamp(-1.00, 1.00)
+      i := i + 1
+    }
+    return knots
+  }
+
+  fn hush() {
+    mic.buffer ## silence.total       // no residual audio
+  }
+
+::END WAVEFORM

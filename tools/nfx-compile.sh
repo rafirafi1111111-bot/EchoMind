@@ -29,9 +29,8 @@ compile() {
     grep -q '^@phase {' "$f" || fail "$rel missing @phase"
     grep -q '^@consent {' "$f" || fail "$rel missing @consent"
 
-    # Core / mesh strata must require consent
     case "$rel" in
-      flux/core/*|flux/mesh/*|flux/runtime/*|flux/schemas/*)
+      flux/core/*|flux/mesh/*|flux/runtime/*|flux/schemas/*|flux/gateway/sensors/*|flux/gateway/capture/*|flux/gateway/consciousness_gateway.nfx)
         grep -q '@consent { required }' "$f" || fail "$rel must declare @consent { required }"
         ;;
     esac
@@ -47,17 +46,40 @@ compile() {
   pass "bundled $COUNT waveforms → dist/echomind.flux"
 }
 
+count_cases() {
+  grep -c '^  case ' "$1" || true
+}
+
 test_suite() {
   compile
   SUITE="$ROOT/tests/resonance_suite.nfx"
   [ -f "$SUITE" ] || fail "missing resonance suite"
-  CASES=$(grep -c '^  case ' "$SUITE" || true)
+  CASES=$(count_cases "$SUITE")
   [ "$CASES" -ge 5 ] || fail "expected at least 5 resonance cases, found $CASES"
   pass "resonance suite: $CASES cases present"
 }
 
+gateway_suite() {
+  compile
+  SUITE="$ROOT/tests/gateway_suite.nfx"
+  [ -f "$SUITE" ] || fail "missing gateway suite"
+  CASES=$(count_cases "$SUITE")
+  [ "$CASES" -ge 6 ] || fail "expected at least 6 gateway cases, found $CASES"
+
+  DISPLAY="$ROOT/flux/gateway/display/resonance_display.nfx"
+  grep -q 'field.chrome := none' "$DISPLAY" || fail "Resonance Display must forbid chrome"
+  grep -q 'field.text   := none' "$DISPLAY" || fail "Resonance Display must forbid text"
+  grep -q 'field.hit-targets := none' "$DISPLAY" || fail "Resonance Display must forbid hit-targets"
+
+  SENSORS=$(find "$ROOT/flux/gateway/sensors" -name '*.nfx' | wc -l | tr -d ' ')
+  [ "$SENSORS" -ge 3 ] || fail "expected >= 3 sensor waveforms"
+
+  pass "gateway suite: $CASES cases; sensors=$SENSORS; display is chromeless"
+}
+
 case "$MODE" in
-  compile) compile ;;
-  test)    test_suite ;;
-  *)       fail "usage: nfx-compile.sh [compile|test]" ;;
+  compile)  compile ;;
+  test)     test_suite ;;
+  gateway)  gateway_suite ;;
+  *)        fail "usage: nfx-compile.sh [compile|test|gateway]" ;;
 esac

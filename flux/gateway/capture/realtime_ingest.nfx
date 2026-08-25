@@ -1,0 +1,32 @@
+::WAVEFORM EchoMind.Gateway.Capture.RealtimeIngest
+@phase { open | pulse | close }
+@consent { required }
+
+  window.ticks := 3          // 33 ms at 11 ms quantum ≈ one display frame
+  backlog.max  := 1          // drop-old, never queue faces/audio
+
+  fn open(node) {
+    !! node.crest.live
+    self.node := node
+    self.live := true
+    Runtime.on.tick => pulse()
+  }
+
+  fn pulse() {
+    if self.live.not -> return
+    if self.node.crest.live.not {
+      close()
+      return
+    }
+    packet := ConsciousnessGateway.capture.frame()
+    packet => Flux                         // already sealed + crested
+  }
+
+  fn close() {
+    self.live := false
+    MicroExpression.drop()
+    VoiceTone.hush()
+    Runtime.on.tick ## detach
+  }
+
+::END WAVEFORM

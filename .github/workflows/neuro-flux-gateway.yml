@@ -1,0 +1,68 @@
+name: Neuro-Flux Gateway Layer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flux/gateway/**"
+      - "tests/gateway_suite.nfx"
+      - "tools/nfx-compile.sh"
+      - "tools/nfx-raster.sh"
+      - ".github/workflows/neuro-flux-gateway.yml"
+  pull_request:
+    paths:
+      - "flux/gateway/**"
+      - "tests/gateway_suite.nfx"
+      - "tools/nfx-compile.sh"
+      - "tools/nfx-raster.sh"
+      - ".github/workflows/neuro-flux-gateway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gateway:
+    name: Compile and test Consciousness Gateway
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout soma
+        uses: actions/checkout@v4
+
+      - name: Make NF-X tools executable
+        run: chmod +x tools/nfx-compile.sh tools/nfx-raster.sh
+
+      - name: Compile all waveforms
+        run: ./tools/nfx-compile.sh compile
+
+      - name: Test gateway layer
+        run: ./tools/nfx-compile.sh gateway
+
+      - name: Raster Resonance Display specimen
+        run: ./tools/nfx-raster.sh
+
+      - name: Assert chromeless SVG
+        run: |
+          test -f dist/resonance_display.svg
+          if grep -E '<text|button|<a ' dist/resonance_display.svg; then
+            echo "Display leaked chrome"
+            exit 1
+          fi
+          echo "Display is envelope-only."
+
+      - name: Prove no banned languages in gateway
+        run: |
+          if find flux/gateway tests -type f \( -name '*.py' -o -name '*.js' -o -name '*.c' -o -name '*.cpp' -o -name '*.cc' \) | grep -q .
+          then
+            echo "Banned traditional sources found"
+            exit 1
+          fi
+
+      - name: Upload gateway artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: echomind-gateway
+          path: |
+            dist/echomind.flux
+            dist/resonance_display.svg
+            dist/waveform.count

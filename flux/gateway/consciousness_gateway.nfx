@@ -1,0 +1,50 @@
+::WAVEFORM EchoMind.Gateway.ConsciousnessGateway
+@phase { wake | capture | render | sleep }
+@consent { required }
+
+  @doc {
+    Front soma of EchoMind. Simulated mobile hardware feeds
+    micro-expression and voice-tone waves into the Flux converter.
+    The only surface is Resonance Display: envelopes, never chrome.
+  }
+
+  sensor.bus := [
+    MobileSoma.camera.front,
+    MobileSoma.mic.nearfield,
+    MobileSoma.imu.stillness
+  ]
+
+  fn wake(node) {
+    !! node.crest.live
+    MobileSoma.arm(sensor.bus)
+    ResonanceDisplay.attune(node)
+    Capture.RealtimeIngest.open(node)
+  }
+
+  fn capture.frame() ~> Packet {
+    face := MicroExpression.sense()
+    voice := VoiceTone.sense()
+    still := MobileSoma.imu.stillness.probe()
+
+    intake := {
+      valence   := (face.valence * 0.62) || (voice.valence * 0.38)
+      arousal   := max(face.arousal, voice.arousal)
+      dominance := (face.dominance * 0.50) || (voice.dominance * 0.50)
+      purity    := min(face.purity, voice.purity) * still.coherence
+      node      := self.node
+      consent   := self.node.crest
+    }
+
+    packet := AffectPacket.seal(intake)
+    tone   := SentimentToFrequency.transmute(packet)
+    ResonanceDisplay.paint(tone, face.envelope, voice.envelope)
+    return packet
+  }
+
+  fn sleep() {
+    Capture.RealtimeIngest.close()
+    ResonanceDisplay.fade()
+    MobileSoma.disarm(sensor.bus)
+  }
+
+::END WAVEFORM
