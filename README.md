@@ -3,7 +3,20 @@ Human Consciousness Network — 2026
 
 EchoMind transmits **raw emotional resonance and cognitive state** without words. Affect is captured as a bio-semantic waveform, converted into a harmonic frequency packet, and phase-locked across a mesh of consenting minds.
 
-All application logic is written in **Neuro-Flux (NF-X)** — a wave-based, bio-semantic language. There is no Python, JavaScript, or C++ in the product core.
+The product core is specified in **Neuro-Flux (NF-X)** — a wave-based, bio-semantic language — under `flux/`.
+**Phase 1** adds a small runnable Node.js simulator in `phase1/` so nodes can connect, send a thought state, and log acknowledgements before the NF-X runtime exists.
+
+## Phase 1 (runnable)
+
+Virtual consciousness nodes join an in-process mesh, handshake with a consent crest, emit a `ThoughtState`, and record `ThoughtAck` responses. Zero npm dependencies. Node 18+.
+
+```bash
+cd phase1
+node src/index.js          # three-node demo
+node src/server.js         # optional HTTP API on :8787
+```
+
+Full notes: [`phase1/README.md`](phase1/README.md)
 
 ## Architecture
 
@@ -13,6 +26,7 @@ All application logic is written in **Neuro-Flux (NF-X)** — a wave-based, bio-
 [ Flux Layer ]      sentiment ⇄ frequency
 [ Mesh Layer ]      P2P phase-lock → sealed envelopes (no servers)
 [ Echo Layer ]      receive / dampen / consent revoke
+[ Phase 1 runtime ] in-process Node mesh (connect / signal / ack)
 ```
 
 | File | Role |
@@ -32,6 +46,7 @@ All application logic is written in **Neuro-Flux (NF-X)** — a wave-based, bio-
 | `flux/gateway/**` | Sensors + Resonance Display |
 | `tests/*.nfx` | Resonance, gateway, mesh suites |
 | `tools/nfx-compile.sh` | compile / test / gateway / mesh |
+| `phase1/` | Runnable Node.js node-mesh simulator |
 | `.github/workflows/neuro-flux-deploy.yml` | Core compile + deploy |
 | `.github/workflows/neuro-flux-gateway.yml` | Gateway test + raster |
 | `.github/workflows/neuro-flux-mesh.yml` | Mesh test + deploy |
@@ -40,11 +55,13 @@ All application logic is written in **Neuro-Flux (NF-X)** — a wave-based, bio-
 
 Peers advertise a trust ring, handshake by interfering live crests, and route **sealed 32-knot envelopes** only. One-tick store at most. Mid-hop revoke burns the path. No relay host, no text, no voice PCM.
 
+Phase 1 approximates that path in-process: enroll → handshake → `ThoughtState` → `ThoughtAck` → structured log.
+
 ## Consent axiom
 
 No waveform leaves a soma without an active **consent crest**. Revocation is instantaneous. The mesh is fail-closed.
 
-## Compile locally
+## Compile locally (NF-X spec)
 
 ```bash
 chmod +x tools/nfx-compile.sh tools/nfx-raster.sh
