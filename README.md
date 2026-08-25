@@ -8,13 +8,21 @@ Runnable layers: **Phase 1** mesh, **Phase 2** realtime mock, **Phase 3** CI + P
 
 ## Live app (Phase 4)
 
-**Open on your phone:** [https://rafirafi1111111-bot.github.io/EchoMind/](https://rafirafi1111111-bot.github.io/EchoMind/)
+The PWA is published from `client/` to the `gh-pages` branch by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) on every client change.
 
-Use the browser *Add to Home Screen* action for the standalone PWA shell.
+**Open now (works without extra settings):**
+[htmlpreview · EchoMind lattice](https://htmlpreview.github.io/?https://github.com/rafirafi1111111-bot/EchoMind/blob/gh-pages/index.html)
 
-The site is the `client/` folder, published by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) on every push that touches the client (and via **Actions → Deploy PWA to GitHub Pages → Run workflow**).
+**GitHub Pages URL (after one enable):**
+[https://rafirafi1111111-bot.github.io/EchoMind/](https://rafirafi1111111-bot.github.io/EchoMind/)
 
-If the first load 404s, wait a minute for Pages to finish the first deploy, then refresh.
+Actions cannot flip Pages on by itself (`Resource not accessible by integration`). One-time in the repo:
+
+1. **Settings → Pages**
+2. Source: **Deploy from a branch**
+3. Branch: **`gh-pages`** / folder **`/`** → Save
+
+Then use the github.io link on your phone and *Add to Home Screen*.
 
 ## Phase 1 (runnable)
 
@@ -75,7 +83,7 @@ Details: [`client/README.md`](client/README.md).
 [ Phase 1 runtime ] in-process Node mesh (connect / signal / ack)
 [ Phase 2 runtime ] event bus + tick loop + strength / sync metrics
 [ Phase 3 preview ] static PWA client + GitHub Actions verify
-[ Phase 4 live ]    GitHub Pages → https://rafirafi1111111-bot.github.io/EchoMind/
+[ Phase 4 live ]    gh-pages + https://rafirafi1111111-bot.github.io/EchoMind/
 ```
 
 | File | Role |
@@ -99,7 +107,7 @@ Details: [`client/README.md`](client/README.md).
 | `phase2/` | Realtime tick loop, event bus, sync metrics |
 | `client/` | PWA / mobile web preview |
 | `.github/workflows/build-test.yml` | Phase 1 + 2 verify + preview check |
-| `.github/workflows/deploy-pages.yml` | Publish `client/` to GitHub Pages |
+| `.github/workflows/deploy-pages.yml` | Publish `client/` to `gh-pages` |
 | `.github/workflows/neuro-flux-deploy.yml` | Core compile + deploy |
 | `.github/workflows/neuro-flux-gateway.yml` | Gateway test + raster |
 | `.github/workflows/neuro-flux-mesh.yml` | Mesh test + deploy |
