@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07070c" />
-  <meta name="description" content="EchoMind Phase 3 preview — consciousness node lattice" />
-  <title>EchoMind — Lattice Preview</title>
+  <meta name="description" content="EchoMind — live consciousness mesh" />
+  <title>EchoMind — Live lattice</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./icons/icon.svg" />
@@ -13,26 +13,46 @@
 </head>
 <body>
   <header class="top">
-    <p class="eyebrow">EchoMind · Phase 3 preview</p>
-    <h1>Consciousness lattice</h1>
-    <p class="lede">Four virtual nodes exchanging thought states. Install as a PWA or open this folder in a browser.</p>
+    <p class="eyebrow">EchoMind · live mesh</p>
+    <h1>Join the lattice</h1>
+    <p class="lede">Enter a name, pick a room, send a thought. Other phones in the same room sync in real time.</p>
   </header>
 
+  <form id="join" class="join">
+    <label>Name or ID
+      <input id="name" name="name" maxlength="32" required placeholder="your name" autocomplete="nickname" />
+    </label>
+    <label>Room
+      <input id="room" name="room" maxlength="32" value="echo" placeholder="echo" />
+    </label>
+    <button type="submit" id="joinBtn">Join live</button>
+  </form>
+
+  <p id="status" class="hint">Not connected.</p>
+
   <section class="stats" aria-live="polite">
-    <div><span id="tick">0</span><label>tick</label></div>
+    <div><span id="peerCount">0</span><label>peers</label></div>
     <div><span id="sync">0.00</span><label>mean sync</label></div>
-    <div><span id="links">0</span><label>live hops</label></div>
+    <div><span id="hops">0</span><label>thoughts</label></div>
   </section>
 
-  <canvas id="lattice" width="720" height="420" aria-label="Node lattice"></canvas>
+  <canvas id="lattice" width="720" height="420" aria-label="Live node lattice"></canvas>
 
-  <ul id="feed" class="feed" aria-label="Recent packets"></ul>
+  <form id="compose" class="compose" hidden>
+    <select id="tone" aria-label="Tone">
+      <option value="curiosity">curiosity</option>
+      <option value="calm">calm</option>
+      <option value="focus">focus</option>
+      <option value="joy">joy</option>
+      <option value="fatigue">fatigue</option>
+    </select>
+    <input id="note" maxlength="280" placeholder="a thought or feeling…" />
+    <button type="submit">Send</button>
+  </form>
 
-  <footer>
-    <button id="toggle" type="button">Pause</button>
-    <span class="hint">Static client — no server. Ready for GitHub Pages or a phone home screen.</span>
-  </footer>
+  <ul id="feed" class="feed" aria-label="Live packets"></ul>
 
+  <script src="https://unpkg.com/mqtt@5.10.4/dist/mqtt.min.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

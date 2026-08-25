@@ -1,4 +1,4 @@
-const CACHE = "echomind-preview-v1";
+const CACHE = "echomind-live-v1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -21,6 +21,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (url.protocol === "ws:" || url.protocol === "wss:") return;
   event.respondWith(
     caches.match(event.request).then((hit) => hit || fetch(event.request))
   );

@@ -1,19 +1,22 @@
-# EchoMind web preview (Phase 3–4)
+# EchoMind live client
 
-Static PWA client. No build step, no npm.
+Join with a name, share a room, send thought tones. Peers sync in real time.
 
-## Live
+## How it connects
 
-https://rafirafi1111111-bot.github.io/EchoMind/
-
-Published from `client/` by `.github/workflows/deploy-pages.yml` on every push that touches this folder.
+- On `localhost` (via `node live/server.js`) it uses the local WebSocket mesh at `/mesh`.
+- On GitHub Pages it uses MQTT over WebSocket to the public HiveMQ broker, namespaced as `echomind/v1/{room}/…` so phones can meet without our own host.
+- Override the socket with `?ws=wss://your-host/mesh`.
 
 ## Local
 
 ```bash
-python3 -m http.server 8080 --directory client
+node live/server.js
+# http://localhost:8788
 ```
 
-Open the URL on a phone and use *Add to Home Screen* for the standalone shell.
+Open that URL on two browsers, join the same room, send a tone.
 
-This preview animates a four-node lattice in the browser. Later phases can point `app.js` at the Phase 1 HTTP API or a WebSocket bridge.
+## Live preview
+
+https://htmlpreview.github.io/?https://github.com/rafirafi1111111-bot/EchoMind/blob/gh-pages/index.html
