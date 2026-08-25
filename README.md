@@ -4,7 +4,17 @@ Human Consciousness Network — 2026
 EchoMind transmits **raw emotional resonance and cognitive state** without words. Affect is captured as a bio-semantic waveform, converted into a harmonic frequency packet, and phase-locked across a mesh of consenting minds.
 
 The product core is specified in **Neuro-Flux (NF-X)** under `flux/`.
-Runnable layers: **Phase 1** mesh, **Phase 2** realtime mock, **Phase 3** GitHub Actions + PWA preview.
+Runnable layers: **Phase 1** mesh, **Phase 2** realtime mock, **Phase 3** CI + PWA, **Phase 4** live GitHub Pages deploy.
+
+## Live app (Phase 4)
+
+**Open on your phone:** [https://rafirafi1111111-bot.github.io/EchoMind/](https://rafirafi1111111-bot.github.io/EchoMind/)
+
+Use the browser *Add to Home Screen* action for the standalone PWA shell.
+
+The site is the `client/` folder, published by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) on every push that touches the client (and via **Actions → Deploy PWA to GitHub Pages → Run workflow**).
+
+If the first load 404s, wait a minute for Pages to finish the first deploy, then refresh.
 
 ## Phase 1 (runnable)
 
@@ -52,7 +62,7 @@ Static client in [`client/`](client/) — no build step.
 python3 -m http.server 8080 --directory client
 ```
 
-Open the URL on a phone and use *Add to Home Screen* for a standalone shell. Details: [`client/README.md`](client/README.md).
+Details: [`client/README.md`](client/README.md).
 
 ## Architecture
 
@@ -65,6 +75,7 @@ Open the URL on a phone and use *Add to Home Screen* for a standalone shell. Det
 [ Phase 1 runtime ] in-process Node mesh (connect / signal / ack)
 [ Phase 2 runtime ] event bus + tick loop + strength / sync metrics
 [ Phase 3 preview ] static PWA client + GitHub Actions verify
+[ Phase 4 live ]    GitHub Pages → https://rafirafi1111111-bot.github.io/EchoMind/
 ```
 
 | File | Role |
@@ -88,6 +99,7 @@ Open the URL on a phone and use *Add to Home Screen* for a standalone shell. Det
 | `phase2/` | Realtime tick loop, event bus, sync metrics |
 | `client/` | PWA / mobile web preview |
 | `.github/workflows/build-test.yml` | Phase 1 + 2 verify + preview check |
+| `.github/workflows/deploy-pages.yml` | Publish `client/` to GitHub Pages |
 | `.github/workflows/neuro-flux-deploy.yml` | Core compile + deploy |
 | `.github/workflows/neuro-flux-gateway.yml` | Gateway test + raster |
 | `.github/workflows/neuro-flux-mesh.yml` | Mesh test + deploy |
