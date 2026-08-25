@@ -122,7 +122,7 @@ function onFrame(msg) {
       peers.delete(msg.id);
     }
     if (msg.type === "join" && msg.id !== self.id) logLine(`${msg.name} joined`);
-    if (msg.type === "leave") logLine(`${msg.name || msg.id} left`);
+    if (msg.type === "leave" && msg.id !== self.id) logLine(`${msg.name || msg.id} left`);
     draw();
     return;
   }
@@ -133,11 +133,10 @@ function onFrame(msg) {
     return;
   }
   if (msg.type === "thought") {
+    if (msg.id === self.id) return;
     hops += 1;
     lastFlash = { from: msg.id };
-    if (msg.id !== self.id) {
-      peers.set(msg.id, { id: msg.id, name: msg.name, tone: msg.tone });
-    }
+    peers.set(msg.id, { id: msg.id, name: msg.name, tone: msg.tone });
     logLine(`${msg.name}: ${msg.tone}${msg.note ? " — " + msg.note : ""}`);
     draw();
   }
