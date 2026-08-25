@@ -1,0 +1,72 @@
+name: Neuro-Flux Consciousness Mesh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flux/mesh/**"
+      - "tests/mesh_suite.nfx"
+      - "tools/nfx-compile.sh"
+      - ".github/workflows/neuro-flux-mesh.yml"
+  pull_request:
+    paths:
+      - "flux/mesh/**"
+      - "tests/mesh_suite.nfx"
+      - "tools/nfx-compile.sh"
+      - ".github/workflows/neuro-flux-mesh.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mesh:
+    name: Test and deploy Consciousness Mesh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout soma
+        uses: actions/checkout@v4
+
+      - name: Make compiler executable
+        run: chmod +x tools/nfx-compile.sh
+
+      - name: Compile all waveforms
+        run: ./tools/nfx-compile.sh compile
+
+      - name: Test mesh layer
+        run: ./tools/nfx-compile.sh mesh
+
+      - name: Prove P2P-only mesh
+        run: |
+          if grep -R -E 'server.listen|http\.post|websocket|upload\.pcm|speech\.to.text' flux/mesh; then
+            echo "Server or lexical pipe detected"
+            exit 1
+          fi
+          test -f flux/mesh/sync.nfx
+          echo "Mesh remains P2P, envelope-only."
+
+      - name: Prove no banned languages
+        run: |
+          if find flux/mesh tests -type f \( -name '*.py' -o -name '*.js' -o -name '*.c' -o -name '*.cpp' -o -name '*.cc' \) | grep -q .
+          then
+            echo "Banned traditional sources found"
+            exit 1
+          fi
+
+      - name: Upload mesh flux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: echomind-mesh
+          path: |
+            dist/echomind.flux
+            dist/waveform.count
+
+      - name: Deploy mesh bundle
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: mesh-deploy
+          force_orphan: true
+          commit_message: "deploy EchoMind consciousness mesh"

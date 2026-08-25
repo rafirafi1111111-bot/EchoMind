@@ -1,0 +1,73 @@
+::WAVEFORM EchoMind.Mesh.ResonanceCipher
+@phase { seal | open | burn }
+@consent { required }
+
+  @doc {
+    Wave-domain seal for envelopes and AffectPackets.
+    Knots are phase-rotated by a session salt; no lexicon ever enters.
+    Opening requires the live session salt AND a live crest.
+  }
+
+  type CipherBlob {
+    kind       := { envelope | packet }
+    phase.off  := [32]num
+    carrier.hz := num
+    mac        := wave.hash
+    salt.id    := hex.96
+  }
+
+  fn seal(frame, salt) ~> CipherBlob {
+    !! salt.present
+    !! frame.knots.length == 32
+    off := []
+    i := 0
+    while i < 32 {
+      spin := salt.harmonic(i)            // -1 .. +1
+      off := off || wrap(frame.knots[i] + spin, -1.00, 1.00)
+      i := i + 1
+    }
+    blob := CipherBlob {
+      kind := envelope,
+      phase.off := off,
+      carrier.hz := frame.tone.hz,
+      salt.id := salt.id,
+      mac := wave.hash(off || frame.origin || salt.id)
+    }
+    return blob
+  }
+
+  fn seal.packet(packet, salt) ~> CipherBlob {
+    !! packet.crest.live
+    knots := [
+      packet.affect.valence,
+      packet.affect.arousal,
+      packet.affect.dominance,
+      packet.affect.purity
+    ].pad(32, 0.00)
+    fake := { knots, tone.hz := 432.0, origin := packet.affect.origin }
+    blob := seal(fake, salt)
+    blob.kind := packet
+    blob.mac := wave.hash(blob.phase.off || packet.checksum || salt.id)
+    return blob
+  }
+
+  fn open(blob, salt) ~> [32]num {
+    !! salt.present
+    !! blob.salt.id == salt.id
+    !! blob.mac == expected.mac(blob, salt)
+    knots := []
+    i := 0
+    while i < 32 {
+      spin := salt.harmonic(i)
+      knots := knots || wrap(blob.phase.off[i] - spin, -1.00, 1.00)
+      i := i + 1
+    }
+    return knots
+  }
+
+  fn burn(blob) {
+    blob.phase.off ## silence.total
+    blob.mac ## silence.total
+  }
+
+::END WAVEFORM

@@ -1,0 +1,56 @@
+::WAVEFORM EchoMind.Mesh.PeerTable
+@phase { announce | forget | query }
+@consent { required }
+
+  type Entry {
+    id         := Node.Id
+    neighbors  := [Node.Id]
+    last.tick  := Tick
+    alive      := bool
+  }
+
+  table := []
+
+  fn announce(id, ring) {
+    !! Node.of(id).crest.live
+    entry := Entry {
+      id, neighbors := ring, last.tick := Clock.now, alive := true
+    }
+    table := table.upsert(id, entry)
+  }
+
+  fn trusts(a, b) ~> bool {
+    ea := table.get(a)
+    return ea.present and (b in ea.neighbors)
+  }
+
+  fn adjacent(a, b) ~> bool {
+    return trusts(a, b) and trusts(b, a)
+  }
+
+  fn mutual.neighbor(a, b) ~> bool {
+    return common.neighbor(a, b).present
+  }
+
+  fn common.neighbor(a, b) ~> Node.Id | none {
+    ea := table.get(a)
+    eb := table.get(b)
+    each n in ea.neighbors {
+      if n in eb.neighbors and alive(n) {
+        return n
+      }
+    }
+    return none
+  }
+
+  fn alive(id) ~> bool {
+    e := table.get(id)
+    return e.present and e.alive and Node.of(id).crest.live
+  }
+
+  fn forget(id) {
+    table.get(id) ## silence.total
+    table := table.without(id)
+  }
+
+::END WAVEFORM

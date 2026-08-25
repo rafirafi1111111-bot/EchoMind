@@ -77,9 +77,38 @@ gateway_suite() {
   pass "gateway suite: $CASES cases; sensors=$SENSORS; display is chromeless"
 }
 
+mesh_suite() {
+  compile
+  SUITE="$ROOT/tests/mesh_suite.nfx"
+  SYNC="$ROOT/flux/mesh/sync.nfx"
+  [ -f "$SUITE" ] || fail "missing mesh suite"
+  [ -f "$SYNC" ] || fail "missing flux/mesh/sync.nfx"
+
+  CASES=$(count_cases "$SUITE")
+  [ "$CASES" -ge 7 ] || fail "expected at least 7 mesh cases, found $CASES"
+
+  grep -q 'No relay host' "$SYNC" || fail "sync.nfx must forbid relay hosts"
+  grep -q 'no lexicon' "$SYNC" || fail "sync.nfx must forbid lexicon"
+  grep -q '@consent { required }' "$SYNC" || fail "sync.nfx must require consent"
+
+  for m in sync.nfx p2p_route.nfx resonance_cipher.nfx handshake.nfx peer_table.nfx consciousness_network.nfx; do
+    [ -f "$ROOT/flux/mesh/$m" ] || fail "missing flux/mesh/$m"
+  done
+
+  if grep -R -E 'server.listen|http\.post|websocket|upload\.pcm|speech\.to.text' "$ROOT/flux/mesh"; then
+    fail "mesh waveforms contain server or lexical pipes"
+  fi
+
+  MESH_N=$(find "$ROOT/flux/mesh" -name '*.nfx' | wc -l | tr -d ' ')
+  [ "$MESH_N" -ge 6 ] || fail "expected >= 6 mesh waveforms"
+
+  pass "mesh suite: $CASES cases; waveforms=$MESH_N; P2P-only"
+}
+
 case "$MODE" in
   compile)  compile ;;
   test)     test_suite ;;
   gateway)  gateway_suite ;;
-  *)        fail "usage: nfx-compile.sh [compile|test|gateway]" ;;
+  mesh)     mesh_suite ;;
+  *)        fail "usage: nfx-compile.sh [compile|test|gateway|mesh]" ;;
 esac

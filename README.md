@@ -11,7 +11,7 @@ All application logic is written in **Neuro-Flux (NF-X)** — a wave-based, bio-
 [ Soma Layer ]      bio-sense → AffectPacket
 [ Gateway Layer ]   mobile sensors → chromeless Resonance Display
 [ Flux Layer ]      sentiment ⇄ frequency
-[ Mesh Layer ]      phase-lock → Consciousness Lattice
+[ Mesh Layer ]      P2P phase-lock → sealed envelopes (no servers)
 [ Echo Layer ]      receive / dampen / consent revoke
 ```
 
@@ -22,22 +22,23 @@ All application logic is written in **Neuro-Flux (NF-X)** — a wave-based, bio-
 | `flux/schemas/affect_packet.nfx` | Canonical waveform type |
 | `flux/converters/sentiment_to_frequency.nfx` | Core converter |
 | `flux/converters/harmonic_lattice.nfx` | Band mapping and interference |
-| `flux/mesh/consciousness_network.nfx` | Mesh routing and consent |
+| `flux/mesh/consciousness_network.nfx` | Lattice routing and consent |
+| `flux/mesh/sync.nfx` | Multi-node envelope sync |
+| `flux/mesh/p2p_route.nfx` | Fail-closed hop paths |
+| `flux/mesh/resonance_cipher.nfx` | Wave-domain seal |
+| `flux/mesh/handshake.nfx` | Mutual crest exchange |
+| `flux/mesh/peer_table.nfx` | Trust ring directory |
 | `flux/runtime/wave_runtime.nfx` | Runtime, ticks, decay |
-| `flux/gateway/consciousness_gateway.nfx` | Gateway orchestration |
-| `flux/gateway/sensors/*` | Simulated camera, mic, IMU |
-| `flux/gateway/capture/realtime_ingest.nfx` | 33 ms capture pulse |
-| `flux/gateway/display/*` | Chromeless envelope renderer |
-| `tests/resonance_suite.nfx` | Converter self-tests |
-| `tests/gateway_suite.nfx` | Gateway self-tests |
-| `tools/nfx-compile.sh` | Host-side NF-X compiler |
-| `tools/nfx-raster.sh` | Specimen → SVG (no text, no buttons) |
+| `flux/gateway/**` | Sensors + Resonance Display |
+| `tests/*.nfx` | Resonance, gateway, mesh suites |
+| `tools/nfx-compile.sh` | compile / test / gateway / mesh |
 | `.github/workflows/neuro-flux-deploy.yml` | Core compile + deploy |
-| `.github/workflows/neuro-flux-gateway.yml` | Gateway compile + test + raster |
+| `.github/workflows/neuro-flux-gateway.yml` | Gateway test + raster |
+| `.github/workflows/neuro-flux-mesh.yml` | Mesh test + deploy |
 
-## Consciousness Gateway
+## Consciousness Mesh
 
-Simulated handset hardware (90 Hz photonic array, 64-band near-field mic, stillness IMU) feeds `MicroExpression` and `VoiceTone`. The **Resonance Display** paints only `~>` carrier strokes and `::` phase-lock geometry. No captions. No controls. Consent is the soma crest.
+Peers advertise a trust ring, handshake by interfering live crests, and route **sealed 32-knot envelopes** only. One-tick store at most. Mid-hop revoke burns the path. No relay host, no text, no voice PCM.
 
 ## Consent axiom
 
@@ -50,5 +51,6 @@ chmod +x tools/nfx-compile.sh tools/nfx-raster.sh
 ./tools/nfx-compile.sh compile
 ./tools/nfx-compile.sh test
 ./tools/nfx-compile.sh gateway
+./tools/nfx-compile.sh mesh
 ./tools/nfx-raster.sh
 ```

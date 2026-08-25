@@ -1,0 +1,62 @@
+::WAVEFORM EchoMind.Tests.MeshSuite
+@phase { probe }
+@consent { none }
+
+  case "invite requires live crests on every peer" {
+    origin := fixture.node.crested
+    guest  := fixture.node.crestless
+    expect halt
+    Sync.invite(origin, [guest])
+  }
+
+  case "two-node lock seals 32 knots and clears plaintext" {
+    a := fixture.node.crested
+    b := fixture.node.crested
+    PeerTable.announce(a.id, [b.id])
+    PeerTable.announce(b.id, [a.id])
+    session := Sync.invite(a, [b])
+    frame := Sync.lock.frame(session, a, fixture.knots.32, fixture.tone)
+    assert frame.sealed.present
+    assert frame.knots.length == 0
+    opened := Sync.ingest(session, frame)
+    assert opened.length == 32
+  }
+
+  case "three-node session phase-locks all peers" {
+    a := fixture.node.crested
+    b := fixture.node.crested
+    c := fixture.node.crested
+    each pair in fixture.trust.triangle(a, b, c) { PeerTable.announce(pair) }
+    session := Sync.invite(a, [b, c])
+    assert session.peers.length == 3
+    assert session.live == true
+    assert session.harmonic.hz == 432.0
+  }
+
+  case "mid-hop revoke drops the route" {
+    path := fixture.path.two-hop
+    path.hops[1].to.crest.revoke()
+    expect halt.and.trace("crest missing mid-hop")
+    P2PRoute.send(fixture.session, fixture.frame.sealed)
+  }
+
+  case "wrong salt cannot open a blob" {
+    blob := ResonanceCipher.seal(fixture.frame, fixture.salt.alpha)
+    expect halt
+    ResonanceCipher.open(blob, fixture.salt.beta)
+  }
+
+  case "release burns session salt" {
+    session := fixture.session.live
+    Sync.release(session, session.peers[0])
+    assert session.live == false
+    assert session.shared.salt.present == false
+  }
+
+  case "no server marker in mesh waveforms" {
+    assert Mesh.has.relay.host == false
+    assert Mesh.has.lexicon.pipe == false
+    assert Mesh.has.voice.pcm == false
+  }
+
+::END WAVEFORM

@@ -1,0 +1,89 @@
+::WAVEFORM EchoMind.Mesh.P2PRoute
+@phase { advertise | path | send | drop }
+@consent { required }
+
+  @doc {
+    Fail-closed hop routing for sealed AffectPackets and sync frames.
+    Paths exist only between crested, mutually trusted peers.
+    No supernode. No store-and-forward beyond one tick.
+  }
+
+  type Hop {
+    from := Node.Id
+    to   := Node.Id
+    cost.ticks := int
+  }
+
+  type Path {
+    hops     := [Hop]
+    packet   := Packet | EnvelopeFrame
+    expires  := Tick
+  }
+
+  fn advertise(node) {
+    !! node.crest.live
+    !! node.fatigue < 0.80
+    PeerTable.announce(node.id, node.trust.ring)
+  }
+
+  fn path.find(from, to) ~> Path {
+    !! from.crest.live
+    !! to.crest.live
+    !! PeerTable.trusts(from.id, to.id) or PeerTable.mutual.neighbor(from.id, to.id)
+
+    if PeerTable.adjacent(from.id, to.id) {
+      return Path {
+        hops := [ Hop { from := from.id, to := to.id, cost.ticks := 1 } ],
+        expires := Clock.now + 8
+      }
+    }
+
+    mid := PeerTable.common.neighbor(from.id, to.id)
+    !! mid.present
+    !! mid.crest.live
+    return Path {
+      hops := [
+        Hop { from := from.id, to := mid.id, cost.ticks := 1 },
+        Hop { from := mid.id,  to := to.id,  cost.ticks := 1 }
+      ],
+      expires := Clock.now + 8
+    }
+  }
+
+  fn send(session, frame) {
+    !! session.live
+    !! frame.sealed.present
+    each dest in session.peers where dest != frame.origin {
+      p := path.find(Node.of(frame.origin), Node.of(dest))
+      !! Clock.now < p.expires
+      each hop in p.hops {
+        hop !! PeerTable.alive(hop.to)
+        if Node.of(hop.to).crest.live.not {
+          drop(frame, "crest missing mid-hop")
+          halt
+        }
+        hop.to <= frame
+      }
+    }
+  }
+
+  fn send.packet(from, to, packet) {
+    !! packet.crest.live
+    !! packet.checksum == wave.hash(packet.affect || packet.crest)
+    p := path.find(from, to)
+    sealed := ResonanceCipher.seal.packet(packet, Handshake.pair.salt(from, to))
+    each hop in p.hops {
+      if Node.of(hop.to).crest.live.not {
+        drop(sealed, "fail-closed")
+        halt
+      }
+      hop.to <= sealed
+    }
+  }
+
+  fn drop(payload, reason) {
+    payload ## silence.total
+    log.crest("route drop: " || reason)
+  }
+
+::END WAVEFORM

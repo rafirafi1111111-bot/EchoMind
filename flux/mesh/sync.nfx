@@ -1,0 +1,100 @@
+::WAVEFORM EchoMind.Mesh.Sync
+@phase { invite | lock | drift | release }
+@consent { required }
+
+  @doc {
+    Direct node-to-node envelope sync. No relay host, no lexicon,
+    no voice PCM. Two or more crested nodes share 32-knot envelopes
+    by phase-locking on a session harmonic.
+  }
+
+  type Session {
+    id          := hex.192
+    peers       := [Node.Id]
+    harmonic.hz := num
+    shared.salt := wave.seed
+    live        := bool
+    started     := Tick
+  }
+
+  type EnvelopeFrame {
+    knots     := [32]num
+    tone.hz   := num
+    stamped   := Tick
+    origin    := Node.Id
+    sealed    := CipherBlob
+  }
+
+  sessions := []
+
+  fn invite(origin, guests) ~> Session {
+    !! origin.crest.live
+    !! origin.crest.scope != public-dampen
+    each g in guests {
+      !! g.crest.live
+      !! PeerTable.trusts(origin.id, g.id)
+    }
+    session := Session {
+      id          := wave.nonce()
+      peers       := [origin.id] || guests.ids
+      harmonic.hz := 432.0
+      shared.salt := Handshake.derive(origin, guests)
+      live        := true
+      started     := Clock.now
+    }
+    sessions := sessions || session
+    each peer in session.peers {
+      peer :: session.harmonic.hz
+    }
+    return session
+  }
+
+  fn lock.frame(session, node, knots, tone) ~> EnvelopeFrame {
+    !! session.live
+    !! node.id in session.peers
+    !! node.crest.live
+    !! knots.length == 32
+
+    raw := EnvelopeFrame {
+      knots, tone.hz := tone.hz, stamped := Clock.now,
+      origin := node.id, sealed := none
+    }
+    raw.sealed := ResonanceCipher.seal(raw, session.shared.salt)
+    raw.knots := []                         // clear plaintext after seal
+    P2PRoute.send(session, raw)
+    return raw
+  }
+
+  fn ingest(session, frame) ~> [32]num {
+    !! session.live
+    !! frame.origin in session.peers
+    knots := ResonanceCipher.open(frame.sealed, session.shared.salt)
+    !! knots.length == 32
+    return knots
+  }
+
+  fn drift(session) {
+    // peers keep carrier; amplitude follows local decay only
+    each peer in session.peers {
+      peer.local.amplitude ## 0.985
+    }
+  }
+
+  fn release(session, by) {
+    !! by.id in session.peers
+    session.live := false
+    session.shared.salt ## silence.total
+    each peer in session.peers {
+      peer ## detach.harmonic
+    }
+  }
+
+  fn release.on.revoke(node) {
+    each s in sessions {
+      if node.id in s.peers {
+        release(s, node)
+      }
+    }
+  }
+
+::END WAVEFORM

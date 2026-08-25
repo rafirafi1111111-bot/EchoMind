@@ -1,0 +1,55 @@
+::WAVEFORM EchoMind.Mesh.Handshake
+@phase { offer | accept | derive | abort }
+@consent { required }
+
+  @doc {
+    Mutual crest exchange. No identity documents, no usernames.
+    Session salt is the interference pattern of two live crests.
+  }
+
+  type Offer {
+    from      := Node.Id
+    crest.sig := wave.hash
+    nonce     := hex.192
+    expires   := Tick
+  }
+
+  fn offer(from, to) ~> Offer {
+    !! from.crest.live
+    !! to.crest.live
+    !! PeerTable.trusts(from.id, to.id)
+    return Offer {
+      from := from.id,
+      crest.sig := wave.hash(from.crest || to.id),
+      nonce := wave.nonce(),
+      expires := Clock.now + 256
+    }
+  }
+
+  fn accept(to, offer) ~> wave.seed {
+    !! to.crest.live
+    !! Clock.now < offer.expires
+    !! offer.from in to.trust.ring
+    return derive(Node.of(offer.from), [to])
+  }
+
+  fn derive(origin, guests) ~> wave.seed {
+    mix := origin.crest.holder
+    each g in guests {
+      mix := mix || g.crest.holder
+    }
+    return wave.seed {
+      id := wave.hash(mix || Clock.now.bucket(64))
+      harmonic(i) := sin((i + 1) * wave.numeric(mix) * 0.017453)
+    }
+  }
+
+  fn pair.salt(a, b) ~> wave.seed {
+    return derive(a, [b])
+  }
+
+  fn abort(offer) {
+    offer ## silence.total
+  }
+
+::END WAVEFORM
