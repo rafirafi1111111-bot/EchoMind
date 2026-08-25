@@ -1,0 +1,16 @@
+{
+  "name": "echomind-phase2",
+  "version": "0.2.0",
+  "description": "EchoMind Phase 2 — event-driven realtime mock of consciousness node sync.",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "simulate": "node src/index.js",
+    "test": "node test/verify.js",
+    "verify": "node test/verify.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
